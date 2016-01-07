@@ -98,8 +98,22 @@ public class Person {
 	public void addSkill(String skill, Integer rate) {
 		this.skills.put(skill, rate);
 	}
+	public boolean knowLangauge(String language) {
+		return getLanguages().contains(language);
+	}
+	public boolean knowSkill(String skill) {
+		return getSkills().containsKey(skill);
+	}
 	public String print() {
 		return String.join(CommonUtil.DELIM, getBirthdate(), getAge().toString(), getSex(), getName());
+	}
+	public String printLanguages() {
+		String languages = String.join(CommonUtil.NAMEDELIM, getLanguages());
+		return String.join(CommonUtil.DELIM, languages);
+	}
+	public String printSkills() {
+		String skills = getSkills().entrySet().stream().map(x -> x.getKey()+"("+x.getValue()+")").collect(Collectors.joining(CommonUtil.NAMEDELIM)); 
+		return String.join(CommonUtil.DELIM, skills);
 	}
 	public String printAbility() {
 		String languages = String.join(CommonUtil.NAMEDELIM, getLanguages());

@@ -87,10 +87,11 @@ public class PersonClosure {
 		skillAverage.entrySet().stream().forEach(System.out::println);
 		
 	// TODO_checked: how to find out what everyone's strongest skill is?
-		// turn it is pretty simple
+		// turn out it is pretty simple
 		Map<Person, Optional> strength = 
 		list.stream()
 			.collect(Collectors.toMap(Function.identity(), p -> p.getSkills().entrySet().stream().max(Entry.comparingByValue())));
+		
 		strength.entrySet().stream().sorted((x1, x2) -> x1.getKey().getName().compareTo(x2.getKey().getName()))
 			.map(x -> x.getKey().printAbility() + CommonUtil.DELIM + x.getValue()).forEach(System.out::println);
 
@@ -102,10 +103,47 @@ public class PersonClosure {
 		// Optional is not parameterized so that to show String value
 		strength.entrySet().stream().sorted((x1, x2) -> x1.getKey().getName().compareTo(x2.getKey().getName()))
 			.map(x -> x.getKey().printAbility() + CommonUtil.DELIM + x.getValue().orElse("This guy still has no skill")).forEach(System.out::println);
+
+	// TODO_checked: how to find out who is the strongest in a particular skill?
+		// 1. List all the skills among all Persons
+		List<String> skillList = 
+		list.stream().map(p -> p.getSkills().keySet()).flatMap(l -> l.stream()).distinct().collect(Collectors.toList());
+		skillList.stream().sorted().forEach(System.out::println);
 		
-	// TODO: how to find out who is the strongest in a particular skill?
+		// 2. Group in a map of skills and who knows each skill
+		Map<String, List<Person>> skillMap = 
+		skillList.stream().collect(Collectors.toMap(Function.identity(), x -> list.stream().filter(p -> p.knowSkill(x)).collect(Collectors.toList())));
+		skillMap.entrySet().stream().sorted(Entry.comparingByKey())
+			.map(x -> String.join(" : ", x.getKey(), 
+				x.getValue().stream().map(y -> String.join(" : ", y.getName(), y.printSkills())).collect(Collectors.joining("; "))))
+			.forEach(System.out::println);
+		
+		// 3. Compare Skill Score by Map
+		// sort descending
+		Map<String, Person> maxSkillMap = 
+		skillMap.entrySet().stream().collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue().stream().max(
+			(p1, p2) -> (p2.getSkills().getOrDefault(x.getKey(), -1).compareTo(p1.getSkills().getOrDefault(x.getKey(), -1)))
+		).get()));
+		maxSkillMap.entrySet().stream().sorted(Entry.comparingByKey()).map(x -> String.join(" : ", x.getKey(), x.getValue().getName(), x.getValue().printSkills())).forEach(System.out::println);
+
+		// So, combining the above three...
+		Map<String, Person> maxSkillMapCombined = 
+		list.stream().map(p -> p.getSkills().keySet()).flatMap(l -> l.stream()).distinct()
+		.collect(Collectors.toMap(Function.identity(), x -> list.stream().filter(p -> p.knowSkill(x)).collect(Collectors.toList())))
+		.entrySet().stream().collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue().stream().max(
+			(p1, p2) -> (p2.getSkills().getOrDefault(x.getKey(), -1).compareTo(p1.getSkills().getOrDefault(x.getKey(), -1)))
+		).get()));
+		maxSkillMapCombined.entrySet().stream().sorted(Entry.comparingByKey()).map(x -> String.join(" : ", x.getKey(), x.getValue().getName(), x.getValue().printSkills())).forEach(System.out::println);
+		
+		// Alternative: By using sorted() and findFirst()
+		Map<String, Person> maxSkillMapBySort = 
+		list.stream().map(p -> p.getSkills().keySet()).flatMap(l -> l.stream()).distinct()
+		.collect(Collectors.toMap(Function.identity(), x -> list.stream().filter(p -> p.getSkills().get(x) != null).sorted(
+			(p1, p2) -> (p2.getSkills().getOrDefault(x, -1).compareTo(p1.getSkills().getOrDefault(x, -1)))
+		).findFirst().get()));
+		maxSkillMapBySort.entrySet().stream().sorted(Entry.comparingByKey()).map(x -> String.join(" : ", x.getKey(), x.getValue().getName(), x.getValue().printSkills())).forEach(System.out::println);
+
+	// TODO: How about the top N persons?
 	}
-	
-	
 
 }
